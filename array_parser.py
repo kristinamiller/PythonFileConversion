@@ -29,11 +29,10 @@ def parse_input(inputfolder):
     # we're going to create two arrays from each of the inputs.
 
     for filename in file_list:
-        if filename.find('easy_file_modified_for_testing') > -1:
+        if filename.find('single_MSlevel_multiplescans_testfile_2') > -1:
             with open(filename, 'r') as rf:
                 lines = rf.readlines()
                 i = 0
-                scan_number = ''
                 mid_scan = False
                 while i < len(lines): 
                     if not mid_scan:
@@ -53,7 +52,7 @@ def parse_input(inputfolder):
                     i += 1
 
             # writes unidec file
-            outputCSV = '1unidec_output' + str(round(cur_time)) + '.csv'
+            outputCSV = '3unidec_output' + str(round(cur_time)) + '.csv'
 
             with open(outputCSV, 'w') as new_csv:
                 csv_writer = csv.writer(new_csv, delimiter=',')
