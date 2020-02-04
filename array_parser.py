@@ -29,7 +29,7 @@ def parse_input(inputfolder):
     # we're going to create two arrays from each of the inputs.
 
     for filename in file_list:
-        if filename.find('.txt') > -1:
+        if filename.find('multiscan_summary') > -1:
             with open(filename, 'r') as rf:
                 lines = rf.readlines()
                 i = 0
@@ -40,7 +40,7 @@ def parse_input(inputfolder):
                     if new_scan_index > -1:
                         new_scan = True
                         scan_number = lines[i][new_scan_index +
-                                              len(searchStrings[0]):].strip()
+                                               len(searchStrings[0]):].strip()
                     if new_scan:
                         if lines[i].find(searchStrings[1]) > -1:
                             mz_array = lines[i+1].strip().split(" ")[2:]
@@ -48,10 +48,11 @@ def parse_input(inputfolder):
                             intensity_array = lines[i+1].strip().split(" ")[2:]
                             unidec_rows += write_unidec_rows(
                                 scan_number, mz_array, intensity_array)
-                    i += 1
-            
+                            new_scan = False
 
-            #writes unidec file
+                    i += 1
+
+            # writes unidec file
             outputCSV = 'unidec_output' + str(round(cur_time)) + '.csv'
 
             with open(outputCSV, 'w') as new_csv:
@@ -61,6 +62,7 @@ def parse_input(inputfolder):
                 for row in unidec_rows:
                     csv_writer.writerow(row)
             print('success')
+
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
     rows = []
@@ -73,12 +75,11 @@ def write_unidec_rows(scan_number, mz_array, intensity_array):
 
 
 def main():
-  inputfolder = input('enter path for folder containing input files:\n')
+    inputfolder = input('enter path for folder containing input files:\n')
 
-  parse_input(inputfolder)
+    parse_input(inputfolder)
 
 
 main()
-# print(rows[:5])
 
 string = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'
