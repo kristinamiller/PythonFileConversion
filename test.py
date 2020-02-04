@@ -16,7 +16,6 @@ searchStrings = ['cvParam: ms level,', 'cvParam: total ion current,']
 rows = []
 # guide: [columnHead, searchString, linePlacement, followsCharacter, dataType]
 outputPairs = [
-  ['ID', ''],
   ['MS Level', 'cvParam: ms level,', 'same_line', ','],
   ['Time', 'cvParam: time array, minute', 'next_line', ']', 'array'],
   ['scan number', 'id: controllerType=0 controllerNumber=1 scan=', 'same_line', '='],

@@ -15,7 +15,6 @@ def parse_input(inputfolder):
     file_list = (os.listdir(inputfolder))
     os.chdir(inputfolder)
 
-
     outputColumns = ['scan', 'm/z', 'intensity']
     searchStrings = [
         'id: controllerType=0 controllerNumber=1 scan=',
@@ -24,7 +23,8 @@ def parse_input(inputfolder):
     ]
 
     output = []
-    rows = []
+    unidec_rows = []
+    metadata_row = []
 
     # we're going to create two arrays from each of the inputs.
 
@@ -33,31 +33,44 @@ def parse_input(inputfolder):
             with open(filename, 'r') as rf:
                 lines = rf.readlines()
                 i = 0
+                scan_number = ''
+                new_scan = True
                 while i < len(lines):
-                    index = lines[i].find(searchStrings[0])
-                    if index > -1:
-                        scanNumber = lines[i][index +
+                    new_scan_index = lines[i].find(searchStrings[0])
+                    if new_scan_index > -1:
+                        new_scan = True
+                        scan_number = lines[i][new_scan_index +
                                               len(searchStrings[0]):].strip()
-                    elif lines[i].find(searchStrings[1]) > -1:
-                        array1 = lines[i+1].strip().split(" ")[2:]
-                    elif lines[i].find(searchStrings[2]) > -1:
-                        array2 = lines[i+1].strip().split(" ")[2:]
+                    if new_scan:
+                        if lines[i].find(searchStrings[1]) > -1:
+                            mz_array = lines[i+1].strip().split(" ")[2:]
+                        elif lines[i].find(searchStrings[2]) > -1:
+                            intensity_array = lines[i+1].strip().split(" ")[2:]
+                            unidec_rows += write_unidec_rows(
+                                scan_number, mz_array, intensity_array)
                     i += 1
-            j = 0
-            while j < len(array1):
-              if array2[j] != "0":
-                  rows.append([scanNumber, array1[j], array2[j]])
-              j += 1
+            
 
-    outputCSV = 'unidec_output' + str(round(cur_time)) + '.csv'
+            #writes unidec file
+            outputCSV = 'unidec_output' + str(round(cur_time)) + '.csv'
 
-    with open(outputCSV, 'w') as new_csv:
-        csv_writer = csv.writer(new_csv, delimiter=',')
-        csv_writer.writerow(outputColumns)
+            with open(outputCSV, 'w') as new_csv:
+                csv_writer = csv.writer(new_csv, delimiter=',')
+                csv_writer.writerow(outputColumns)
 
-        for row in rows:
-            csv_writer.writerow(row)
-    print('success')
+                for row in unidec_rows:
+                    csv_writer.writerow(row)
+            print('success')
+
+def write_unidec_rows(scan_number, mz_array, intensity_array):
+    rows = []
+    i = 0
+    while i < len(mz_array):
+        if intensity_array[i] != "0":
+            rows.append([scan_number, mz_array[i], intensity_array[i]])
+        i += 1
+    return rows
+
 
 def main():
   inputfolder = input('enter path for folder containing input files:\n')
@@ -67,3 +80,5 @@ def main():
 
 main()
 # print(rows[:5])
+
+string = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'
