@@ -29,31 +29,31 @@ def parse_input(inputfolder):
     # we're going to create two arrays from each of the inputs.
 
     for filename in file_list:
-        if filename.find('multiscan_summary') > -1:
+        if filename.find('easy_file_modified_for_testing') > -1:
             with open(filename, 'r') as rf:
                 lines = rf.readlines()
                 i = 0
                 scan_number = ''
-                new_scan = True
-                while i < len(lines):
-                    new_scan_index = lines[i].find(searchStrings[0])
-                    if new_scan_index > -1:
-                        new_scan = True
-                        scan_number = lines[i][new_scan_index +
-                                               len(searchStrings[0]):].strip()
-                    if new_scan:
+                mid_scan = False
+                while i < len(lines): 
+                    if not mid_scan:
+                        new_scan_index = lines[i].find(searchStrings[0])
+                        if new_scan_index > -1:
+                            mid_scan = True
+                            scan_number = lines[i][new_scan_index +
+                                                len(searchStrings[0]):].strip()
+                    else:
                         if lines[i].find(searchStrings[1]) > -1:
                             mz_array = lines[i+1].strip().split(" ")[2:]
                         elif lines[i].find(searchStrings[2]) > -1:
                             intensity_array = lines[i+1].strip().split(" ")[2:]
                             unidec_rows += write_unidec_rows(
                                 scan_number, mz_array, intensity_array)
-                            new_scan = False
-
+                            mid_scan = False
                     i += 1
 
             # writes unidec file
-            outputCSV = 'unidec_output' + str(round(cur_time)) + '.csv'
+            outputCSV = '1unidec_output' + str(round(cur_time)) + '.csv'
 
             with open(outputCSV, 'w') as new_csv:
                 csv_writer = csv.writer(new_csv, delimiter=',')
@@ -62,7 +62,7 @@ def parse_input(inputfolder):
                 for row in unidec_rows:
                     csv_writer.writerow(row)
             print('success')
-
+    # print(unidec_rows)
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
     rows = []
