@@ -2,15 +2,19 @@ import os
 import csv
 
 
-def unidec_output():
+def parse_input(inputfolder):
     cur_time = os.stat('test.py').st_atime
 
-    # finds the folder I'm reading from and puts filenames into array.
-    file_list = (os.listdir(
-        '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'))
-    # gets inside the folder I'm reading from.
-    os.chdir(
-        '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder')
+    # # finds the folder I'm reading from and puts filenames into array.
+    # file_list = (os.listdir(
+    #     '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'))
+    # # gets inside the folder I'm reading from.
+    # os.chdir(
+    #     '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder')
+
+    file_list = (os.listdir(inputfolder))
+    os.chdir(inputfolder)
+
 
     outputColumns = ['scan', 'm/z', 'intensity']
     searchStrings = [
@@ -25,7 +29,7 @@ def unidec_output():
     # we're going to create two arrays from each of the inputs.
 
     for filename in file_list:
-        if filename.find('easiest_file_single_scan_testfile-1') > -1:
+        if filename.find('.txt') > -1:
             with open(filename, 'r') as rf:
                 lines = rf.readlines()
                 i = 0
@@ -55,6 +59,11 @@ def unidec_output():
             csv_writer.writerow(row)
     print('success')
 
-unidec_output()
+def main():
+  inputfolder = input('enter path for folder containing input files:\n')
 
+  parse_input(inputfolder)
+
+
+main()
 # print(rows[:5])

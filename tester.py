@@ -1,4 +1,4 @@
-if 1 != 0:
-  print('not equal')
-else:
-  print ('equal')
+x = input('enter first number')
+y = input('enter second number')
+z = int(x) + int(y)
+print(z)
