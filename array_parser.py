@@ -77,7 +77,7 @@ def write_unidec_rows(scan_number, mz_array, intensity_array):
 
 def write_metadata(scan_number, lines):
     search_dict = {
-        'MS Level': ['cvParam: ms level,', ','],
+        'MS Level': ['cvParam: ms level,', ',', ','],
         # 'Time': ['cvParam: time array, minute', 'next_line', ']', 'array'],
         'Polarity': ['cvParam: positive scan', ':', " "],
         'SID': ['sid=', 'd=', " "],
@@ -95,9 +95,7 @@ def write_metadata(scan_number, lines):
             if search_string_idx > -1:
                 start_idx = lines[i].find(search_inst[1]) + 2
                 output_value = lines[i][start_idx:].strip();
-                # end_idx = output_value.find(search_inst[2])
-                # if end_idx > -1:
-                #     output_value = output_value[:end_idx - 1]    
+                output_value = output_value.split(search_inst[2])[0]
                 output_dict[column_name] = output_value
             i += 1
 
