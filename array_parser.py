@@ -13,8 +13,8 @@ metadata_dict = {
     'tic': ['cvParam: total ion current,', ',', ' ']
 }
 
+
 def parse_input(inputfolder):
-   
 
     # # finds the folder I'm reading from and puts filenames into array.
     # file_list = (os.listdir(
@@ -52,7 +52,8 @@ def parse_input(inputfolder):
                             mid_scan = True
                             scan_number = lines[i][new_scan_index +
                                                    len(searchStrings[0]):].strip()
-                            write_metadata_row(scan_number, lines[i:i+143])
+                            metadata_row = write_metadata_row(
+                                scan_number, lines[i:i+143])
                     else:
                         if lines[i].find(searchStrings[1]) > -1:
                             mz_array = lines[i+1].strip().split(" ")[2:]
@@ -62,14 +63,18 @@ def parse_input(inputfolder):
                                 scan_number, mz_array, intensity_array)
                             mid_scan = False
                     i += 1
+            # create unidec file and write rows
             unidec_csv = create_new_csv(unidecOutputColumns, 'unidec')
-
             with open(unidec_csv, 'a') as unidec_csv:
                 csv_writer = csv.writer(unidec_csv, delimiter=',')
-                # csv_writer.writerow(unidecOutputColumns)
                 for row in unidec_rows:
                     csv_writer.writerow(row)
-            # print('success')
+            # create metadata file and write one row
+            metadata_csv = create_new_csv(
+                list(metadata_row.keys()), 'metadata')
+            with open(metadata_csv, 'a') as metadata_csv:
+                csv_writer = csv.writer(metadata_csv, delimiter=',')
+                csv_writer.writerow(metadata_row.values())
 
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
@@ -81,8 +86,9 @@ def write_unidec_rows(scan_number, mz_array, intensity_array):
         i += 1
     return rows
 
+
 def write_metadata_row(scan_number, lines):
-    output_dict = {}
+    output_dict = {'scan number': scan_number}
 
     for column_name, search_inst in metadata_dict.items():
         # output_dict[column_name] = search_inst
@@ -91,20 +97,21 @@ def write_metadata_row(scan_number, lines):
             search_string_idx = lines[i].find(search_inst[0])
             if search_string_idx > -1:
                 start_idx = lines[i].find(search_inst[1]) + 2
-                output_value = lines[i][start_idx:].strip();
+                output_value = lines[i][start_idx:].strip()
                 output_value = output_value.split(search_inst[2])[0]
                 output_dict[column_name] = output_value
             i += 1
 
     return(output_dict)
 
+
 def create_new_csv(column_names, type):
-    outputCSV = '1' + type + str(round(cur_time)) + '.csv'
+    outputCSV = '4' + type + str(round(cur_time)) + '.csv'
 
     with open(outputCSV, 'w') as new_csv:
         csv_writer = csv.writer(new_csv, delimiter=',')
         csv_writer.writerow(column_names)
-    
+
     return outputCSV
 
 
