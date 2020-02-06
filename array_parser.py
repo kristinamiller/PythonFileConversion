@@ -13,16 +13,14 @@ metadata_dict = {
     'tic': ['cvParam: total ion current,', ',', ' ']
 }
 
+unidec_dict = {
+    'scan': 'id: controllerType=0 controllerNumber=1 scan=',
+    'm/z': 'cvParam: m/z array, m/z',
+    'intensity': 'cvParam: intensity array, number of detector counts'
+}
+
 
 def parse_input(inputfolder):
-
-    # # finds the folder I'm reading from and puts filenames into array.
-    # file_list = (os.listdir(
-    #     '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'))
-    # # gets inside the folder I'm reading from.
-    # os.chdir(
-    #     '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder')
-
     file_list = (os.listdir(inputfolder))
     os.chdir(inputfolder)
 
@@ -47,34 +45,35 @@ def parse_input(inputfolder):
                 mid_scan = False
                 while i < len(lines):
                     if not mid_scan:
-                        new_scan_index = lines[i].find(searchStrings[0])
+                        new_scan_index = lines[i].find(unidec_dict['scan'])
                         if new_scan_index > -1:
                             mid_scan = True
                             scan_number = lines[i][new_scan_index +
-                                                   len(searchStrings[0]):].strip()
+                                                   len(unidec_dict['scan']):].strip()
                             metadata_row = write_metadata_row(
                                 scan_number, lines[i:i+143])
                     else:
-                        if lines[i].find(searchStrings[1]) > -1:
+                        if lines[i].find(unidec_dict['m/z']) > -1:
                             mz_array = lines[i+1].strip().split(" ")[2:]
-                        elif lines[i].find(searchStrings[2]) > -1:
+                        elif lines[i].find(unidec_dict['intensity']) > -1:
                             intensity_array = lines[i+1].strip().split(" ")[2:]
                             unidec_rows += write_unidec_rows(
                                 scan_number, mz_array, intensity_array)
                             mid_scan = False
                     i += 1
             # create unidec file and write rows
-            unidec_csv = create_new_csv(unidecOutputColumns, 'unidec')
+            unidec_csv = create_new_csv(unidec_dict.keys(), 'unidec')
             with open(unidec_csv, 'a') as unidec_csv:
                 csv_writer = csv.writer(unidec_csv, delimiter=',')
                 for row in unidec_rows:
                     csv_writer.writerow(row)
             # create metadata file and write one row
             metadata_csv = create_new_csv(
-                list(metadata_row.keys()), 'metadata')
+                metadata_row.keys(), 'metadata')
             with open(metadata_csv, 'a') as metadata_csv:
                 csv_writer = csv.writer(metadata_csv, delimiter=',')
                 csv_writer.writerow(metadata_row.values())
+    print('success')
 
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
@@ -91,7 +90,6 @@ def write_metadata_row(scan_number, lines):
     output_dict = {'scan number': scan_number}
 
     for column_name, search_inst in metadata_dict.items():
-        # output_dict[column_name] = search_inst
         i = 0
         while i < len(lines):
             search_string_idx = lines[i].find(search_inst[0])
@@ -106,7 +104,7 @@ def write_metadata_row(scan_number, lines):
 
 
 def create_new_csv(column_names, type):
-    outputCSV = '4' + type + str(round(cur_time)) + '.csv'
+    outputCSV = '5' + type + str(round(cur_time)) + '.csv'
 
     with open(outputCSV, 'w') as new_csv:
         csv_writer = csv.writer(new_csv, delimiter=',')
@@ -124,7 +122,4 @@ def main():
 
 main()
 
-string = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'
 
-
-# pass the next 150 lines to a helper method that will find the other data.

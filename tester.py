@@ -53,3 +53,10 @@ def main():
 
 
 main()
+
+  # # finds the folder I'm reading from and puts filenames into array.
+# file_list = (os.listdir(
+#     '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'))
+# # gets inside the folder I'm reading from.
+# os.chdir(
+#     '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder')
