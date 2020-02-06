@@ -1,9 +1,20 @@
 import os
 import csv
 
+cur_time = os.stat('test.py').st_atime
+
+metadata_dict = {
+    'MS Level': ['cvParam: ms level,', ',', ','],
+    # 'Time': ['cvParam: time array, minute', 'next_line', ']', 'array'],
+    'Polarity': ['cvParam: positive scan', ':', " "],
+    'SID': ['sid=', 'd=', " "],
+    'MS2 precursor': ['selected ion m/z,', ',', ','],
+    'HCD energy': ['collision energy,', ',', ','],
+    'tic': ['cvParam: total ion current,', ',', ' ']
+}
 
 def parse_input(inputfolder):
-    cur_time = os.stat('test.py').st_atime
+   
 
     # # finds the folder I'm reading from and puts filenames into array.
     # file_list = (os.listdir(
@@ -15,7 +26,7 @@ def parse_input(inputfolder):
     file_list = (os.listdir(inputfolder))
     os.chdir(inputfolder)
 
-    outputColumns = ['scan', 'm/z', 'intensity']
+    unidecOutputColumns = ['scan', 'm/z', 'intensity']
     searchStrings = [
         'id: controllerType=0 controllerNumber=1 scan=',
         'cvParam: m/z array, m/z',
@@ -41,7 +52,7 @@ def parse_input(inputfolder):
                             mid_scan = True
                             scan_number = lines[i][new_scan_index +
                                                    len(searchStrings[0]):].strip()
-                            write_metadata(scan_number, lines[i:i+143])
+                            write_metadata_row(scan_number, lines[i:i+143])
                     else:
                         if lines[i].find(searchStrings[1]) > -1:
                             mz_array = lines[i+1].strip().split(" ")[2:]
@@ -51,18 +62,14 @@ def parse_input(inputfolder):
                                 scan_number, mz_array, intensity_array)
                             mid_scan = False
                     i += 1
+            unidec_csv = create_new_csv(unidecOutputColumns, 'unidec')
 
-            # writes unidec file
-            outputCSV = '3unidec_output' + str(round(cur_time)) + '.csv'
-
-            with open(outputCSV, 'w') as new_csv:
-                csv_writer = csv.writer(new_csv, delimiter=',')
-                csv_writer.writerow(outputColumns)
-
+            with open(unidec_csv, 'a') as unidec_csv:
+                csv_writer = csv.writer(unidec_csv, delimiter=',')
+                # csv_writer.writerow(unidecOutputColumns)
                 for row in unidec_rows:
                     csv_writer.writerow(row)
             # print('success')
-    # print(unidec_rows)
 
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
@@ -74,20 +81,10 @@ def write_unidec_rows(scan_number, mz_array, intensity_array):
         i += 1
     return rows
 
-
-def write_metadata(scan_number, lines):
-    search_dict = {
-        'MS Level': ['cvParam: ms level,', ',', ','],
-        # 'Time': ['cvParam: time array, minute', 'next_line', ']', 'array'],
-        'Polarity': ['cvParam: positive scan', ':', " "],
-        'SID': ['sid=', 'd=', " "],
-        'MS2 precursor': ['selected ion m/z,', ',', ','],
-        'HCD energy': ['collision energy,', ',', ','],
-        'tic': ['cvParam: total ion current,', ',', ' ']
-    }
+def write_metadata_row(scan_number, lines):
     output_dict = {}
 
-    for column_name, search_inst in search_dict.items():
+    for column_name, search_inst in metadata_dict.items():
         # output_dict[column_name] = search_inst
         i = 0
         while i < len(lines):
@@ -99,7 +96,17 @@ def write_metadata(scan_number, lines):
                 output_dict[column_name] = output_value
             i += 1
 
-    print(output_dict)
+    return(output_dict)
+
+def create_new_csv(column_names, type):
+    outputCSV = '1' + type + str(round(cur_time)) + '.csv'
+
+    with open(outputCSV, 'w') as new_csv:
+        csv_writer = csv.writer(new_csv, delimiter=',')
+        csv_writer.writerow(column_names)
+    
+    return outputCSV
+
 
 def main():
     inputfolder = input('enter path for folder containing input files:\n')
