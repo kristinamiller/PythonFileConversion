@@ -1,0 +1,8 @@
+outputColumns = ['ID', 'MS Level', 'Time',
+outputPairs = [
+for pair in outputPairs:
+            outputValue = [line[line.find(',') + 2:].strip()]
+            row += outputValue
+outputCSV = 'output' + str(round(cur_time)) + '.csv'
+with open(outputCSV, 'w') as new_csv:
+  csv_writer.writerow(outputColumns)
