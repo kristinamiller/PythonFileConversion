@@ -33,8 +33,8 @@ def parse_input(inputfolder):
 
 
 def is_valid_file(filename):
-    # if filename.find('single_MSlevel_multiplescans_testfile_2') > -1:
-    if filename.find('easiest_file_single_scan_testfile-1') > -1:
+    if filename.find('easy_file_modified_for_testing') > -1:
+    # if filename.find('easiest_file_single_scan_testfile-1') > -1:
         return True
     else:
         return False
@@ -62,8 +62,8 @@ def read_file(filename):
                     metadata_row = write_metadata_row(
                         scan_number, lines[i:i+143])
                     # append_rows(metadata_csv, [metadata_row])
-                    with open(metadata_csv, 'a') as metadata_csv:
-                        csv_writer = csv.writer(metadata_csv, delimiter=',')
+                    with open(metadata_csv, 'a') as metadata_csv_file:
+                        csv_writer = csv.writer(metadata_csv_file, delimiter=',')
                         csv_writer.writerow(metadata_row.values())
             else:
                 if lines[i].find(unidec_dict['m/z']) > -1:
@@ -74,8 +74,8 @@ def read_file(filename):
                         scan_number, mz_array, intensity_array)
                     mid_scan = False
                     # append_rows(unidec_csv, unidec_rows)
-                    with open(unidec_csv, 'a') as unidec_csv:
-                        csv_writer = csv.writer(unidec_csv, delimiter=',')
+                    with open(unidec_csv, 'a') as unidec_csv_file:
+                        csv_writer = csv.writer(unidec_csv_file, delimiter=',')
                         for row in unidec_rows:
                             csv_writer.writerow(row)
             i += 1
