@@ -13,6 +13,8 @@ metadata_dict = {
     'tic': ['cvParam: total ion current,', ',', ' ']
 }
 
+metadata_columns = ['scan number', 'MS Level', 'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
+
 unidec_dict = {
     'scan': 'id: controllerType=0 controllerNumber=1 scan=',
     'm/z': 'cvParam: m/z array, m/z',
@@ -31,6 +33,7 @@ def parse_input(inputfolder):
 
 
 def is_valid_file(filename):
+    # if filename.find('single_MSlevel_multiplescans_testfile_2') > -1:
     if filename.find('easiest_file_single_scan_testfile-1') > -1:
         return True
     else:
@@ -41,6 +44,9 @@ def read_file(filename):
     output = []
     unidec_rows = []
     metadata_row = []
+    unidec_csv = create_new_csv(unidec_dict.keys(), 'unidec')
+    metadata_csv = create_new_csv(
+        metadata_columns, 'metadata')
 
     with open(filename, 'r') as rf:
         lines = rf.readlines()
@@ -55,6 +61,10 @@ def read_file(filename):
                                            len(unidec_dict['scan']):].strip()
                     metadata_row = write_metadata_row(
                         scan_number, lines[i:i+143])
+                    # append_rows(metadata_csv, [metadata_row])
+                    with open(metadata_csv, 'a') as metadata_csv:
+                        csv_writer = csv.writer(metadata_csv, delimiter=',')
+                        csv_writer.writerow(metadata_row.values())
             else:
                 if lines[i].find(unidec_dict['m/z']) > -1:
                     mz_array = lines[i+1].strip().split(" ")[2:]
@@ -63,19 +73,13 @@ def read_file(filename):
                     unidec_rows += write_unidec_rows(
                         scan_number, mz_array, intensity_array)
                     mid_scan = False
+                    # append_rows(unidec_csv, unidec_rows)
+                    with open(unidec_csv, 'a') as unidec_csv:
+                        csv_writer = csv.writer(unidec_csv, delimiter=',')
+                        for row in unidec_rows:
+                            csv_writer.writerow(row)
             i += 1
-    # create unidec file and write many rows
-    unidec_csv = create_new_csv(unidec_dict.keys(), 'unidec')
-    with open(unidec_csv, 'a') as unidec_csv:
-        csv_writer = csv.writer(unidec_csv, delimiter=',')
-        for row in unidec_rows:
-            csv_writer.writerow(row)
-    # create metadata file and write one row
-    metadata_csv = create_new_csv(
-        metadata_row.keys(), 'metadata')
-    with open(metadata_csv, 'a') as metadata_csv:
-        csv_writer = csv.writer(metadata_csv, delimiter=',')
-        csv_writer.writerow(metadata_row.values())
+
     print('success')
 
 
@@ -105,9 +109,15 @@ def write_metadata_row(scan_number, lines):
 
     return(output_dict)
 
+def append_rows(csv, rows):
+    with open(csv, 'a') as csv:
+        csv_writer = csv.writer(csv, delimiter=',')
+        for row in rows:
+            csv_writer.writerow(row)
+
 
 def create_new_csv(column_names, type):
-    outputCSV = '5' + type + str(round(cur_time)) + '.csv'
+    outputCSV = '8' + type + str(round(cur_time)) + '.csv'
 
     with open(outputCSV, 'w') as new_csv:
         csv_writer = csv.writer(new_csv, delimiter=',')
