@@ -5,7 +5,7 @@ cur_time = os.stat('test.py').st_atime
 
 metadata_dict = {
     'MS Level': ['cvParam: ms level,', ',', ','],
-    # 'Time': ['cvParam: time array, minute', 'next_line', ']', 'array'],
+    'Time': ['cvParam: scan start time', ',', ','],
     'Polarity': ['cvParam: positive scan', ':', " "],
     'SID': ['sid=', 'd=', " "],
     'MS2 precursor': ['selected ion m/z,', ',', ','],
@@ -13,7 +13,7 @@ metadata_dict = {
     'tic': ['cvParam: total ion current,', ',', ' ']
 }
 
-metadata_columns = ['scan number', 'MS Level', 'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
+metadata_columns = ['scan number', 'MS Level', 'Time', 'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
 
 unidec_dict = {
     'scan': 'id: controllerType=0 controllerNumber=1 scan=',
@@ -117,7 +117,7 @@ def append_rows(csv, rows):
 
 
 def create_new_csv(column_names, type):
-    outputCSV = '8' + type + str(round(cur_time)) + '.csv'
+    outputCSV = '10' + type + str(round(cur_time)) + '.csv'
 
     with open(outputCSV, 'w') as new_csv:
         csv_writer = csv.writer(new_csv, delimiter=',')
