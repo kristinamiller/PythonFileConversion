@@ -1,5 +1,6 @@
 import os
 import csv
+import argparse
 
 cur_time = os.stat('test.py').st_atime
 
@@ -117,7 +118,7 @@ def append_rows(csv, rows):
 
 
 def create_new_csv(column_names, type):
-    outputCSV = '10' + type + str(round(cur_time)) + '.csv'
+    outputCSV = '12' + type + str(round(cur_time)) + '.csv'
 
     with open(outputCSV, 'w') as new_csv:
         csv_writer = csv.writer(new_csv, delimiter=',')
@@ -127,11 +128,13 @@ def create_new_csv(column_names, type):
 
 
 def main():
-    inputfolder = input('enter path for folder containing input files:\n')
+    # inputfolder = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'
 
-    parse_input(
-        '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder')
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder', help='the folder to select files from')
+    args = parser.parse_args()
+    parse_input(args.folder)
+    
 
 if __name__ == '__main__':
     main()
