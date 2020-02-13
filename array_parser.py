@@ -14,7 +14,8 @@ metadata_dict = {
     'tic': ['cvParam: total ion current,', ',', ' ']
 }
 
-metadata_columns = ['scan number', 'MS Level', 'Time', 'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
+metadata_columns = ['scan number', 'MS Level', 'Time',
+                    'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
 
 unidec_dict = {
     'scan': 'id: controllerType=0 controllerNumber=1 scan=',
@@ -30,14 +31,10 @@ def parse_input(inputfolder, conditionals):
     for filename in file_list:
         if is_valid_file(filename):
             read_file(filename, conditionals)
-    # raise RuntimeError('this is an error because I say so')
 
 
 def is_valid_file(filename):
     if filename.find('2-13-test-file.txt') > -1:
-    # if filename.find('single_MSlevel_multiplescans_testfile_2') > -1:
-    # if filename.find('easy_file_modified_for_testing') > -1:
-    # if filename.find('easiest_file_single_scan_testfile-1') > -1:
         return True
     else:
         return False
@@ -55,14 +52,22 @@ def read_file(filename, conditionals):
         mid_scan = False
         first_scan = True
         while i < len(lines):
-            if not mid_scan: 
-                new_scan_index = lines[i].find(unidec_dict['scan']) 
-                if new_scan_index > -1: #we know we've hit a new scan
+            if not mid_scan:
+                new_scan_index = lines[i].find(unidec_dict['scan'])
+                if new_scan_index > -1:  # we know we've hit a new scan
                     mid_scan = True
                     scan_number = lines[i][new_scan_index +
                                            len(unidec_dict['scan']):].strip()
+                    if int(scan_number) < conditionals['scan_range'][0]:
+                        mid_scan = False
+                        i += 1
+                        continue
+                    if conditionals['scan_range'][1] != 0 and int(scan_number) > conditionals['scan_range'][1]:
+                        mid_scan = False
+                        i += 1
+                        continue
                     metadata_row = write_metadata_row(
-                        scan_number, lines[i:i+143]) #this is bad here. not precise. 
+                        scan_number, lines[i:i+143])  # improve precision here
                     if int(float(metadata_row['tic'])) < conditionals['tic_min']:
                         mid_scan = False
                         i += 1
@@ -96,6 +101,7 @@ def append_rows(input_csv, rows):
         for row in rows:
             csv_writer.writerow(row)
 
+
 def write_unidec_rows(scan_number, mz_array, intensity_array):
     rows = []
     i = 0
@@ -108,7 +114,7 @@ def write_unidec_rows(scan_number, mz_array, intensity_array):
 
 def write_metadata_row(scan_number, lines):
     output_dict = {'scan number': scan_number}
-    #once we find the item for a column it breaks out of the inner loop and starts looking for the next one.
+    # once we find the item for a column it breaks out of the inner loop and starts looking for the next one.
     for column_name, search_inst in metadata_dict.items():
         i = 0
         while i < len(lines):
@@ -126,7 +132,7 @@ def write_metadata_row(scan_number, lines):
 
 def create_new_csv(type, column_names, filename, scan_number, hcd_energy, ms_level):
     filename_trimmed = filename.split('.')[0]
-    title_elements = ['19', filename_trimmed, scan_number,
+    title_elements = ['27', filename_trimmed, scan_number,
                       hcd_energy, ms_level, type, str(round(cur_time)), '.csv']
     s = '_'
     outputCSV = s.join(title_elements)
@@ -139,20 +145,25 @@ def create_new_csv(type, column_names, filename, scan_number, hcd_energy, ms_lev
 
 
 def main():
-    # inputfolder = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/test-read-folder'
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('--folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing', help='the folder to select files from')
+    parser.add_argument('--folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing',
+                        help='the folder to select files from')
     parser.add_argument('--hcd', type=str, default='false',
                         help='True or False to export to new file when HCD value changes')
     parser.add_argument('--tic_min', type=str, default='1e4',
                         help='the minimum value for the total ion current, below which scans will be excluded from the results')
     parser.add_argument('--scan_range', type=str, default='0-0',
-                        help='min and max scan number to start and end with, e.g. 2-12. 0-0 will export all scans.')
+                        help='min and max scan number to start and end with, e.g. 2-12. 0-0 will export all scans. 2-0 will start at 2 and go to the end.')
     args = parser.parse_args()
-    conditionals = {'hcd': args.hcd, 'tic_min': int(float(args.tic_min)), 'scan_range': args.scan_range.split("-")}
+    scan_range = args.scan_range.split("-")
+    scan_range_integers = []
+    for n in scan_range:
+        scan_range_integers.append(int(n))
+
+    conditionals = {'hcd': args.hcd, 'tic_min': int(
+        float(args.tic_min)), 'scan_range': scan_range_integers}
     parse_input(args.folder, conditionals)
-    
+
 
 if __name__ == '__main__':
     main()

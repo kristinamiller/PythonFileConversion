@@ -12,9 +12,19 @@
 
 # print(int(float('7.0430144e07')))
 
-for i in range(10):
-  if i == 4:
-    continue
-  elif i % 2 == 0:
-    print('found even number')
-  print(i)
+# for i in range(10):
+#   if i == 4:
+#     continue
+#   elif i % 2 == 0:
+#     print('found even number')
+#   print(i)
+def convert(n):
+  return int(n)
+
+
+array = ['1', '2']
+converted = []
+for n in array:
+  converted.append(int(n))
+
+print(converted)
