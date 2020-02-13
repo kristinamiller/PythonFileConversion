@@ -34,7 +34,7 @@ def parse_input(inputfolder, conditionals):
 
 
 def is_valid_file(filename):
-    if filename.find('2-10-test-file') > -1:
+    if filename.find('2-13-test-file.txt') > -1:
     # if filename.find('single_MSlevel_multiplescans_testfile_2') > -1:
     # if filename.find('easy_file_modified_for_testing') > -1:
     # if filename.find('easiest_file_single_scan_testfile-1') > -1:
@@ -47,9 +47,6 @@ def read_file(filename, conditionals):
     output = []
     unidec_rows = []
     metadata_row = []
-    # unidec_csv = create_new_csv(unidec_dict.keys(), 'unidec')
-    # metadata_csv = create_new_csv(
-    #     metadata_columns, 'metadata')
     cur_hcd = 0
 
     with open(filename, 'r') as rf:
@@ -66,11 +63,15 @@ def read_file(filename, conditionals):
                                            len(unidec_dict['scan']):].strip()
                     metadata_row = write_metadata_row(
                         scan_number, lines[i:i+143]) #this is bad here. not precise. 
+                    if int(float(metadata_row['tic'])) < conditionals['tic_min']:
+                        mid_scan = False
+                        i += 1
+                        continue
                     if first_scan or (conditionals['hcd'] == 'true' and cur_hcd != metadata_row['HCD energy']):
                         unidec_csv = create_new_csv('unidec',
-                                                    unidec_dict.keys(), scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
+                                                    unidec_dict.keys(), filename, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
                         metadata_csv = create_new_csv('metadata',
-                                                      metadata_columns, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
+                                                      metadata_columns, filename, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
                         first_scan = False
                     cur_hcd = metadata_row['HCD energy']
                     append_rows(metadata_csv, [metadata_row.values()])
@@ -123,10 +124,9 @@ def write_metadata_row(scan_number, lines):
     return(output_dict)
 
 
-
-
-def create_new_csv(type, column_names, scan_number, hcd_energy, ms_level):
-    title_elements = ['10', scan_number,
+def create_new_csv(type, column_names, filename, scan_number, hcd_energy, ms_level):
+    filename_trimmed = filename.split('.')[0]
+    title_elements = ['19', filename_trimmed, scan_number,
                       hcd_energy, ms_level, type, str(round(cur_time)), '.csv']
     s = '_'
     outputCSV = s.join(title_elements)
@@ -143,10 +143,14 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing', help='the folder to select files from')
-    parser.add_argument('--hcd', type=str, default='true',
+    parser.add_argument('--hcd', type=str, default='false',
                         help='True or False to export to new file when HCD value changes')
+    parser.add_argument('--tic_min', type=str, default='1e4',
+                        help='the minimum value for the total ion current, below which scans will be excluded from the results')
+    parser.add_argument('--scan_range', type=str, default='0-0',
+                        help='min and max scan number to start and end with, e.g. 2-12. 0-0 will export all scans.')
     args = parser.parse_args()
-    conditionals = {'hcd': args.hcd}
+    conditionals = {'hcd': args.hcd, 'tic_min': int(float(args.tic_min)), 'scan_range': args.scan_range.split("-")}
     parse_input(args.folder, conditionals)
     
 
