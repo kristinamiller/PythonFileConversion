@@ -73,10 +73,7 @@ def read_file(filename, conditionals):
                                                       metadata_columns, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
                         first_scan = False
                     cur_hcd = metadata_row['HCD energy']
-                    # append_rows(metadata_csv, [metadata_row])
-                    with open(metadata_csv, 'a') as metadata_csv_file:
-                        csv_writer = csv.writer(metadata_csv_file, delimiter=',')
-                        csv_writer.writerow(metadata_row.values())
+                    append_rows(metadata_csv, [metadata_row.values()])
             else:
                 if lines[i].find(unidec_dict['m/z']) > -1:
                     mz_array = lines[i+1].strip().split(" ")[2:]
@@ -85,15 +82,18 @@ def read_file(filename, conditionals):
                     unidec_rows += write_unidec_rows(
                         scan_number, mz_array, intensity_array)
                     mid_scan = False
-                    # append_rows(unidec_csv, unidec_rows)
-                    with open(unidec_csv, 'a') as unidec_csv_file:
-                        csv_writer = csv.writer(unidec_csv_file, delimiter=',')
-                        for row in unidec_rows:
-                            csv_writer.writerow(row)
+                    append_rows(unidec_csv, unidec_rows)
+                    unidec_rows = []
             i += 1
 
     print('success')
 
+
+def append_rows(input_csv, rows):
+    with open(input_csv, 'a') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',')
+        for row in rows:
+            csv_writer.writerow(row)
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
     rows = []
@@ -122,15 +122,11 @@ def write_metadata_row(scan_number, lines):
 
     return(output_dict)
 
-def append_rows(csv, rows):
-    with open(csv, 'a') as csv:
-        csv_writer = csv.writer(csv, delimiter=',')
-        for row in rows:
-            csv_writer.writerow(row)
+
 
 
 def create_new_csv(type, column_names, scan_number, hcd_energy, ms_level):
-    title_elements = ['07', scan_number,
+    title_elements = ['10', scan_number,
                       hcd_energy, ms_level, type, str(round(cur_time)), '.csv']
     s = '_'
     outputCSV = s.join(title_elements)
