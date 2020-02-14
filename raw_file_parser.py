@@ -1,6 +1,7 @@
 import os
 import csv
 import argparse
+import random
 
 cur_time = os.stat('test.py').st_atime
 
@@ -24,9 +25,19 @@ unidec_dict = {
 }
 
 
-def parse_input(inputfolder, conditionals):
-    file_list = (os.listdir(inputfolder))
-    os.chdir(inputfolder)
+def parse_input(conditionals):
+    file_list = (os.listdir(input_folder))
+    os.chdir(input_folder)
+
+    global output_folder
+    output_folder = input_folder + '/parser_output' + str(random.randint(10000, 100000))
+
+    try:
+        os.mkdir(output_folder)
+    except OSError:
+        print("Failure creating the directory %s " % output_folder)
+    else:
+        print("Successfully created the directory %s " % output_folder)
 
     for filename in file_list:
         if is_valid_file(filename):
@@ -34,7 +45,7 @@ def parse_input(inputfolder, conditionals):
 
 
 def is_valid_file(filename):
-    if filename.find('2-13-test-file.txt') > -1:
+    if filename.find('.txt') > -1:
         return True
     else:
         return False
@@ -91,7 +102,7 @@ def read_file(filename, conditionals):
                     append_rows(unidec_csv, unidec_rows)
                     unidec_rows = []
             i += 1
-
+    os.chdir(input_folder)
     print('success')
 
 
@@ -131,9 +142,10 @@ def write_metadata_row(scan_number, lines):
 
 
 def create_new_csv(type, column_names, filename, scan_number, hcd_energy, ms_level):
+    os.chdir(output_folder)
     filename_trimmed = filename.split('.')[0]
-    title_elements = ['27', filename_trimmed, scan_number,
-                      hcd_energy, ms_level, type, str(round(cur_time)), '.csv']
+    title_elements = [filename_trimmed, scan_number,
+                      hcd_energy, ms_level, type, '.csv']
     s = '_'
     outputCSV = s.join(title_elements)
 
@@ -146,7 +158,7 @@ def create_new_csv(type, column_names, filename, scan_number, hcd_energy, ms_lev
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing',
+    parser.add_argument('input_folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing',
                         help='the folder to select files from')
     parser.add_argument('--hcd', type=str, default='false',
                         help='True or False to export to new file when HCD value changes')
@@ -162,7 +174,9 @@ def main():
 
     conditionals = {'hcd': args.hcd, 'tic_min': int(
         float(args.tic_min)), 'scan_range': scan_range_integers}
-    parse_input(args.folder, conditionals)
+    global input_folder
+    input_folder = args.input_folder
+    parse_input(conditionals)
 
 
 if __name__ == '__main__':
