@@ -3,7 +3,7 @@ import csv
 import argparse
 import random
 
-cur_time = os.stat('test.py').st_atime
+# cur_time = os.stat('test.py').st_atime
 
 metadata_dict = {
     'MS Level': ['cvParam: ms level,', ',', ','],
@@ -103,7 +103,7 @@ def read_file(filename, conditionals):
                     unidec_rows = []
             i += 1
     os.chdir(input_folder)
-    print('success')
+    
 
 
 def append_rows(input_csv, rows):
@@ -161,11 +161,11 @@ def main():
     parser.add_argument('input_folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing',
                         help='the folder to select files from')
     parser.add_argument('--hcd', type=str, default='false',
-                        help='True or False to export to new file when HCD value changes')
+                        help='true or false to export to new file when HCD value changes. Default: false')
     parser.add_argument('--tic_min', type=str, default='1e4',
-                        help='the minimum value for the total ion current, below which scans will be excluded from the results')
+                        help='the minimum value for the total ion current, below which scans will be excluded from the results. Default: 1e4')
     parser.add_argument('--scan_range', type=str, default='0-0',
-                        help='min and max scan number to start and end with, e.g. 2-12. 0-0 will export all scans. 2-0 will start at 2 and go to the end.')
+                        help='min and max scan number to start and end with, e.g. 2-12. 0-0 will export all scans. 2-0 will start at 2 and go to the end. Default: 0-0')
     args = parser.parse_args()
     scan_range = args.scan_range.split("-")
     scan_range_integers = []
@@ -181,3 +181,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    print('success')
