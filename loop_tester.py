@@ -29,25 +29,32 @@
 
 # print(converted)
 
-import os
-import csv
+# import os
+# import csv
 
-metadata_columns = ['scan number', 'MS Level', 'Time',
-                    'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
+# metadata_columns = ['scan number', 'MS Level', 'Time',
+#                     'Polarity', 'SID', 'MS2 precursor', 'HCD energy', 'tic']
 
-path = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/automated-file-parser/new_auto_folder1'
+# path = '/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/automated-file-parser/new_auto_folder1'
 
-try:
-    os.mkdir(path)
-except OSError:
-    print("Creation of the directory %s failed" % path)
-else:
-    print("Successfully created the directory %s " % path)
+# try:
+#     os.mkdir(path)
+# except OSError:
+#     print("Creation of the directory %s failed" % path)
+# else:
+#     print("Successfully created the directory %s " % path)
 
-os.chdir(path)
+# os.chdir(path)
 
-outputCSV = 'test-file.csv'
+# outputCSV = 'test-file.csv'
 
-with open(outputCSV, 'w') as new_csv:
-    csv_writer = csv.writer(new_csv, delimiter=',')
-    csv_writer.writerow(metadata_columns)
+# with open(outputCSV, 'w') as new_csv:
+#     csv_writer = csv.writer(new_csv, delimiter=',')
+#     csv_writer.writerow(metadata_columns)
+
+
+
+dictionary = {'name': 'Kristina'}
+
+if 'face' not in dictionary:
+    print('no')

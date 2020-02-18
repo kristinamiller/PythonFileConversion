@@ -30,7 +30,8 @@ def parse_input(conditionals):
     os.chdir(input_folder)
 
     global output_folder
-    output_folder = input_folder + '/parser_output' + str(random.randint(10000, 100000))
+    output_folder = input_folder + '/parser_output' + \
+        str(random.randint(10000, 100000))
 
     try:
         os.mkdir(output_folder)
@@ -90,7 +91,7 @@ def read_file(filename, conditionals):
                                                       metadata_columns, filename, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
                         first_scan = False
                     cur_hcd = metadata_row['HCD energy']
-                    append_rows(metadata_csv, [metadata_row.values()])
+                    append_metadata_rows(metadata_csv, metadata_row)
             else:
                 if lines[i].find(unidec_dict['m/z']) > -1:
                     mz_array = lines[i+1].strip().split(" ")[2:]
@@ -99,18 +100,27 @@ def read_file(filename, conditionals):
                     unidec_rows += write_unidec_rows(
                         scan_number, mz_array, intensity_array)
                     mid_scan = False
-                    append_rows(unidec_csv, unidec_rows)
+                    append_unidec_rows(unidec_csv, unidec_rows)
                     unidec_rows = []
             i += 1
     os.chdir(input_folder)
-    
 
 
-def append_rows(input_csv, rows):
+def append_unidec_rows(input_csv, rows):
     with open(input_csv, 'a') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=',')
         for row in rows:
             csv_writer.writerow(row)
+
+def append_metadata_rows(input_csv, row_dict):
+    #convert metadata row object from unpredictable order to predictable list
+    row = []
+    for column in metadata_columns:
+        row.append(row_dict[column])
+
+    with open(input_csv, 'a') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',')
+        csv_writer.writerow(row)
 
 
 def write_unidec_rows(scan_number, mz_array, intensity_array):
@@ -137,6 +147,14 @@ def write_metadata_row(scan_number, lines):
                 output_dict[column_name] = output_value
                 break
             i += 1
+
+    #if we don't find HCD, SID, or MS Level, put a 0.
+    if 'HCD energy' not in output_dict:
+        output_dict['HCD energy'] = '0'
+    if 'SID' not in output_dict:
+        output_dict['SID'] = '0'
+    if 'MS2 precursor' not in output_dict:
+        output_dict['MS2 precursor'] = '0'
 
     return(output_dict)
 
