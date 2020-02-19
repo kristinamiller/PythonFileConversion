@@ -53,7 +53,6 @@
 #     csv_writer.writerow(metadata_columns)
 
 
-
 dictionary = {'name': 'Kristina'}
 
 if 'face' not in dictionary:

@@ -30,7 +30,8 @@ def parse_input(conditionals):
     os.chdir(input_folder)
 
     global output_folder
-    output_folder = input_folder + '/parser_output' + str(round(cur_time)) + str(random.randint(100, 1000))
+    output_folder = input_folder + '/parser_output' + \
+        str(round(cur_time)) + str(random.randint(100, 1000))
 
     try:
         os.mkdir(output_folder)
@@ -55,10 +56,7 @@ def read_file(filename, conditionals):
     output = []
     unidec_rows = []
     metadata_row = []
-    cur_hcd = ""
-    cur_ms_level = ""
-    cur_polarity = ""
-    cur_sid = ""
+    cur_hcd = 0
 
     with open(filename, 'r') as rf:
         lines = rf.readlines()
@@ -86,21 +84,13 @@ def read_file(filename, conditionals):
                         mid_scan = False
                         i += 1
                         continue
-                    # possible metadata filter:
-                    # if int(float(metadata_row['HCD energy'])) != 20:
-                    #     mid_scan = False
-                    #     i += 1
-                    #     continue
-                    if first_scan or (conditionals['hcd'] == 'true' and cur_hcd != metadata_row['HCD energy']) or (conditionals['ms_level'] == 'true' and cur_ms_level != metadata_row['MS Level']) or (conditionals['polarity'] == 'true' and cur_polarity != metadata_row['Polarity']) or (conditionals['sid'] == 'true' and cur_sid != metadata_row['SID']):
+                    if first_scan:
                         unidec_csv = create_new_csv('unidec',
                                                     unidec_dict.keys(), filename, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
                         metadata_csv = create_new_csv('metadata',
                                                       metadata_columns, filename, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
                         first_scan = False
-                    cur_hcd = metadata_row['HCD energy']
-                    cur_ms_level = metadata_row['MS Level']
-                    cur_polarity = metadata_row['Polarity']
-                    cur_sid = metadata_row['SID']
+                    # cur_hcd = metadata_row['HCD energy']
                     append_metadata_rows(metadata_csv, metadata_row)
             else:
                 if lines[i].find(unidec_dict['m/z']) > -1:
@@ -113,7 +103,36 @@ def read_file(filename, conditionals):
                     append_unidec_rows(unidec_csv, unidec_rows)
                     unidec_rows = []
             i += 1
+    if any(item == 'true' for item in conditionals.values()):
+      apply_filters(conditionals, metadata_csv, unidec_csv)
     os.chdir(input_folder)
+
+def apply_filters(conditionals, metadata_csv, unidec_csv):
+  print('applying filters')
+
+  if conditionals['hcd'] == 'true':
+    hcd_dict = {}
+    with open(metadata_csv, 'r') as metadata_csv_file:
+      csv_reader = csv.reader(metadata_csv_file)
+      i = 0
+      for line in csv_reader:
+        if i > 0:
+          scan_number = line[0]
+          ms_level = line[1]
+          polarity = line[3]
+          sid = line[4]
+          hcd = line[6]
+
+          if hcd not in hcd_dict:
+            hcd_dict[hcd] = [scan_number]
+          else:
+            hcd_dict[hcd].append(scan_number)
+        i+=1
+
+    print(hcd_dict)
+    for hcd_value, scan_numbers in hcd_dict.items():
+      print('gross')
+
 
 
 def append_unidec_rows(input_csv, rows):
@@ -121,6 +140,7 @@ def append_unidec_rows(input_csv, rows):
         csv_writer = csv.writer(csv_file, delimiter=',')
         for row in rows:
             csv_writer.writerow(row)
+
 
 def append_metadata_rows(input_csv, row_dict):
     #convert metadata row object from unpredictable order to predictable list
@@ -165,8 +185,6 @@ def write_metadata_row(scan_number, lines):
         output_dict['SID'] = '0'
     if 'MS2 precursor' not in output_dict:
         output_dict['MS2 precursor'] = '0'
-    if 'Polarity' not in output_dict:
-        output_dict['Polarity'] = '0'
 
     return(output_dict)
 
@@ -175,7 +193,7 @@ def create_new_csv(type, column_names, filename, scan_number, hcd_energy, ms_lev
     os.chdir(output_folder)
     filename_trimmed = filename.split('.')[0]
     title_elements = [filename_trimmed, scan_number,
-                      hcd_energy, ms_level, type, str(random.randint(100, 999)), '.csv']
+                      hcd_energy, ms_level, type, str(random.randint(10, 100)), '.csv']
     s = '_'
     outputCSV = s.join(title_elements)
 
@@ -190,13 +208,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing',
                         help='the folder to select files from')
-    parser.add_argument('--hcd', type=str, default='false',
+    parser.add_argument('--hcd_change', type=str, default='false',
                         help='true or false to export to new file when HCD value changes. Default: false')
-    parser.add_argument('--ms_level', type=str, default='false',
+    parser.add_argument('--ms_level_change', type=str, default='false',
                         help='true or false to export to new file when MS Level value changes. Default: false')
-    parser.add_argument('--polarity', type=str, default='false',
+    parser.add_argument('--polarity_change', type=str, default='false',
                         help='true or false to export to new file when Polarity value changes. Default: false')
-    parser.add_argument('--sid', type=str, default='false',
+    parser.add_argument('--sid_change', type=str, default='false',
                         help='true or false to export to new file when SID value changes. Default: false')
     parser.add_argument('--tic_min', type=str, default='1e4',
                         help='the minimum value for the total ion current, below which scans will be excluded from the results. Default: 1e4')
@@ -208,7 +226,7 @@ def main():
     for n in scan_range:
         scan_range_integers.append(int(n))
 
-    conditionals = {'hcd': args.hcd, 'ms_level': args.ms_level, 'polarity': args.polarity, 'sid': args.sid, 'tic_min': int(
+    conditionals = {'hcd': args.hcd_change, 'ms_level': args.ms_level_change, 'polarity': args.polarity_change, 'hcd': args.hcd_change, 'tic_min': int(
         float(args.tic_min)), 'scan_range': scan_range_integers}
     global input_folder
     input_folder = args.input_folder
