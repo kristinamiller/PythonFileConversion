@@ -60,11 +60,17 @@
 #         csv_writer.writerow(row)
 
 
-list = [2,3,4,5,6]
+# list = [2,3,4,5,6]
 
 
-if any(item > 7 for item in list):
-  print('true')
+# if any(item > 7 for item in list):
+#   print('true')
+
+
+from collections import defaultdict
+counter = defaultdict(int)
+counter[4] += 1
+print(dict(counter))
 
 
 

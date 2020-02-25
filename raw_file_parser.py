@@ -2,8 +2,9 @@ import os
 import csv
 import argparse
 import random
+from collections import defaultdict
 
-cur_time = os.stat('test.py').st_atime
+# cur_time = os.stat('raw_file_parser.py').st_atime
 
 metadata_dict = {
     'MS Level': ['cvParam: ms level,', ',', ','],
@@ -30,7 +31,8 @@ def parse_input(conditionals):
     os.chdir(input_folder)
 
     global output_folder
-    output_folder = input_folder + '/parser_output' + str(round(cur_time)) + str(random.randint(100, 1000))
+    output_folder = input_folder + '/parser_output' + \
+        str(random.randint(10000, 100000))
 
     try:
         os.mkdir(output_folder)
@@ -40,12 +42,17 @@ def parse_input(conditionals):
         print("Successfully created the directory %s " % output_folder)
 
     for filename in file_list:
-        if is_valid_file(filename):
+        if is_valid_file(filename, conditionals['filename']):
             read_file(filename, conditionals)
 
 
-def is_valid_file(filename):
-    if filename.find('.txt') > -1:
+def is_valid_file(filename, input_filename):
+    if input_filename != '0':
+        if filename.find(input_filename) > -1:
+            return True
+        else:
+            return False
+    elif filename.find('.txt') > -1:
         return True
     else:
         return False
@@ -59,6 +66,9 @@ def read_file(filename, conditionals):
     cur_ms_level = ""
     cur_polarity = ""
     cur_sid = ""
+    hcd_filter_options = defaultdict(int)
+    ms_level_filter_options = defaultdict(int)
+    polarity_filter_options = defaultdict(int)
 
     with open(filename, 'r') as rf:
         lines = rf.readlines()
@@ -82,15 +92,31 @@ def read_file(filename, conditionals):
                         continue
                     metadata_row = write_metadata_row(
                         scan_number, lines[i:i+143])  # improve precision here
+                    if conditionals['hcd_filter'] == 'true':
+                        hcd_filter_options[metadata_row['HCD energy']] += 1
+                    if conditionals['ms_level_filter'] == 'true':
+                        ms_level_filter_options[metadata_row['MS Level']] += 1
+                    if conditionals['polarity_filter'] == 'true':
+                        polarity_filter_options[metadata_row['Polarity']] += 1
                     if int(float(metadata_row['tic'])) < conditionals['tic_min']:
                         mid_scan = False
                         i += 1
                         continue
-                    # possible metadata filter:
-                    # if int(float(metadata_row['HCD energy'])) != 20:
-                    #     mid_scan = False
-                    #     i += 1
-                    #     continue
+                    if conditionals['hcd_filter_value'] != 'none':
+                        if metadata_row['HCD energy'] != conditionals['hcd_filter_value']:
+                            mid_scan = False
+                            i += 1
+                            continue
+                    if conditionals['ms_level_filter_value'] != 'none':
+                        if metadata_row['Ms Level'] != conditionals['ms_level_filter_value']:
+                            mid_scan = False
+                            i += 1
+                            continue
+                    if conditionals['polarity_filter_value'] != 'none':
+                        if metadata_row['Polarity'] != conditionals['polarity_filter_value']:
+                            mid_scan = False
+                            i += 1
+                            continue
                     if first_scan or (conditionals['hcd'] == 'true' and cur_hcd != metadata_row['HCD energy']) or (conditionals['ms_level'] == 'true' and cur_ms_level != metadata_row['MS Level']) or (conditionals['polarity'] == 'true' and cur_polarity != metadata_row['Polarity']) or (conditionals['sid'] == 'true' and cur_sid != metadata_row['SID']):
                         unidec_csv = create_new_csv('unidec',
                                                     unidec_dict.keys(), filename, scan_number, metadata_row['HCD energy'], metadata_row['MS Level'])
@@ -113,6 +139,8 @@ def read_file(filename, conditionals):
                     append_unidec_rows(unidec_csv, unidec_rows)
                     unidec_rows = []
             i += 1
+    print(filename)
+    print(dict(hcd_filter_options))
     os.chdir(input_folder)
 
 
@@ -122,8 +150,9 @@ def append_unidec_rows(input_csv, rows):
         for row in rows:
             csv_writer.writerow(row)
 
+
 def append_metadata_rows(input_csv, row_dict):
-    #convert metadata row object from unpredictable order to predictable list
+    # convert metadata row object from unpredictable order to predictable list
     row = []
     for column in metadata_columns:
         row.append(row_dict[column])
@@ -158,7 +187,7 @@ def write_metadata_row(scan_number, lines):
                 break
             i += 1
 
-    #if we don't find HCD, SID, or MS Level, put a 0.
+    # if we don't find HCD, SID, or MS Level, put a 0.
     if 'HCD energy' not in output_dict:
         output_dict['HCD energy'] = '0'
     if 'SID' not in output_dict:
@@ -190,12 +219,26 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_folder', type=str, default='/Users/kristinamiller/Documents/Freelancing/Genentech/first-project/2-13-testing',
                         help='the folder to select files from')
+    parser.add_argument('--filename', type=str, default='0',
+                        help='choose one file to read or filter')
     parser.add_argument('--hcd', type=str, default='false',
                         help='true or false to export to new file when HCD value changes. Default: false')
+    parser.add_argument('--hcd_filter', type=str, default='false',
+                        help='true or false to print out HCD values by which you can filter.  Default: false')
+    parser.add_argument('--hcd_filter_value', type=str, default='none',
+                        help='HCD value to filter for in output. Must be used with filename. Default: none')
     parser.add_argument('--ms_level', type=str, default='false',
                         help='true or false to export to new file when MS Level value changes. Default: false')
+    parser.add_argument('--ms_level_filter', type=str, default='false',
+                        help='true or false to print out MS Level values by which you can filter.  Default: false')
+    parser.add_argument('--ms_level_filter_value', type=str, default='none',
+                        help='MS Level value to filter for in output. Must be used with filename. Default: none')
     parser.add_argument('--polarity', type=str, default='false',
                         help='true or false to export to new file when Polarity value changes. Default: false')
+    parser.add_argument('--polarity_filter', type=str, default='false',
+                        help='true or false to print out Polarity values by which you can filter.  Default: false')
+    parser.add_argument('--polarity_filter_value', type=str, default='none',
+                        help='Polarity value to filter for in output. Must be used with filename. Default: none')
     parser.add_argument('--sid', type=str, default='false',
                         help='true or false to export to new file when SID value changes. Default: false')
     parser.add_argument('--tic_min', type=str, default='1e4',
@@ -208,7 +251,7 @@ def main():
     for n in scan_range:
         scan_range_integers.append(int(n))
 
-    conditionals = {'hcd': args.hcd, 'ms_level': args.ms_level, 'polarity': args.polarity, 'sid': args.sid, 'tic_min': int(
+    conditionals = {'hcd': args.hcd, 'filename': args.filename, 'hcd_filter': args.hcd_filter, 'hcd_filter_value': args.hcd_filter_value, 'ms_level': args.ms_level, 'ms_level_filter': args.ms_level_filter, 'ms_level_filter_value': args.ms_level_filter_value, 'polarity': args.polarity, 'polarity_filter': args.polarity_filter, 'polarity_filter_value': args.polarity_filter_value, 'sid': args.sid, 'tic_min': int(
         float(args.tic_min)), 'scan_range': scan_range_integers}
     global input_folder
     input_folder = args.input_folder
