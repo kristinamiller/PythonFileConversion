@@ -69,6 +69,7 @@ def read_file(filename, conditionals):
     hcd_filter_options = defaultdict(int)
     ms_level_filter_options = defaultdict(int)
     polarity_filter_options = defaultdict(int)
+    sid_filter_options = defaultdict(int)
 
     with open(filename, 'r') as rf:
         lines = rf.readlines()
@@ -98,6 +99,8 @@ def read_file(filename, conditionals):
                         ms_level_filter_options[metadata_row['MS Level']] += 1
                     if conditionals['polarity_filter'] == 'true':
                         polarity_filter_options[metadata_row['Polarity']] += 1
+                    if conditionals['sid_filter'] == 'true':
+                        sid_filter_options[metadata_row['SID']] += 1
                     if int(float(metadata_row['tic'])) < conditionals['tic_min']:
                         mid_scan = False
                         i += 1
@@ -114,6 +117,11 @@ def read_file(filename, conditionals):
                             continue
                     if conditionals['polarity_filter_value'] != 'none':
                         if metadata_row['Polarity'] != conditionals['polarity_filter_value']:
+                            mid_scan = False
+                            i += 1
+                            continue
+                    if conditionals['sid_filter_value'] != 'none':
+                        if metadata_row['SID'] != conditionals['sid_filter_value']:
                             mid_scan = False
                             i += 1
                             continue
@@ -140,7 +148,14 @@ def read_file(filename, conditionals):
                     unidec_rows = []
             i += 1
     print(filename)
+    print('HCD Values:')
     print(dict(hcd_filter_options))
+    print('MS Level Values:')
+    print(dict(ms_level_filter_options))
+    print('Polarity Values:')
+    print(dict(polarity_filter_options))
+    print('SID Values:')
+    print(dict(sid_filter_options))
     os.chdir(input_folder)
 
 
@@ -149,7 +164,6 @@ def append_unidec_rows(input_csv, rows):
         csv_writer = csv.writer(csv_file, delimiter=',')
         for row in rows:
             csv_writer.writerow(row)
-
 
 def append_metadata_rows(input_csv, row_dict):
     # convert metadata row object from unpredictable order to predictable list
@@ -241,6 +255,10 @@ def main():
                         help='Polarity value to filter for in output. Must be used with filename. Default: none')
     parser.add_argument('--sid', type=str, default='false',
                         help='true or false to export to new file when SID value changes. Default: false')
+    parser.add_argument('--sid_filter', type=str, default='false',
+                        help='true or false to print out SID values by which you can filter.  Default: false')
+    parser.add_argument('--sid_filter_value', type=str, default='none',
+                        help='SID value to filter for in output. Must be used with filename. Default: none')
     parser.add_argument('--tic_min', type=str, default='1e4',
                         help='the minimum value for the total ion current, below which scans will be excluded from the results. Default: 1e4')
     parser.add_argument('--scan_range', type=str, default='0-0',
@@ -251,7 +269,7 @@ def main():
     for n in scan_range:
         scan_range_integers.append(int(n))
 
-    conditionals = {'hcd': args.hcd, 'filename': args.filename, 'hcd_filter': args.hcd_filter, 'hcd_filter_value': args.hcd_filter_value, 'ms_level': args.ms_level, 'ms_level_filter': args.ms_level_filter, 'ms_level_filter_value': args.ms_level_filter_value, 'polarity': args.polarity, 'polarity_filter': args.polarity_filter, 'polarity_filter_value': args.polarity_filter_value, 'sid': args.sid, 'tic_min': int(
+    conditionals = {'hcd': args.hcd, 'filename': args.filename, 'hcd_filter': args.hcd_filter, 'hcd_filter_value': args.hcd_filter_value, 'ms_level': args.ms_level, 'ms_level_filter': args.ms_level_filter, 'ms_level_filter_value': args.ms_level_filter_value, 'polarity': args.polarity, 'polarity_filter': args.polarity_filter, 'polarity_filter_value': args.polarity_filter_value, 'sid': args.sid, 'sid_filter': args.sid_filter, 'sid_filter_value': args.sid_filter_value, 'tic_min': int(
         float(args.tic_min)), 'scan_range': scan_range_integers}
     global input_folder
     input_folder = args.input_folder
