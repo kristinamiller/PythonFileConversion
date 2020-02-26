@@ -29,9 +29,20 @@ unidec_dict = {
 def parse_input(conditionals):
     file_list = (os.listdir(input_folder))
     os.chdir(input_folder)
+    filter_string = ''
+    filter_names = ['hcd', 'ms_level',
+                    'polarity', 'sid']
+
+    # k = 0
+    # while k < 4:
+    #     filter_value = filter_names[k] + '_filter_value'
+    #     if conditionals[filter_value] != 'none':
+    #         filter_string += filter_names[k] + '_' + conditionals[filter_value] + '_'
+    #      k += 1
+    
 
     global output_folder
-    output_folder = input_folder + '/parser_output' + \
+    output_folder = input_folder + 'parser_output' + filter_string + \
         str(random.randint(10000, 100000))
 
     try:
@@ -70,6 +81,9 @@ def read_file(filename, conditionals):
     ms_level_filter_options = defaultdict(int)
     polarity_filter_options = defaultdict(int)
     sid_filter_options = defaultdict(int)
+    filter_options_list = [hcd_filter_options, ms_level_filter_options, polarity_filter_options, sid_filter_options]
+    filter_names = ['hcd_filter', 'ms_level_filter', 'polarity_filter', 'sid_filter']
+    filter_columns = ['HCD energy', 'MS Level', 'Polarity', 'SID']
 
     with open(filename, 'r') as rf:
         lines = rf.readlines()
@@ -93,14 +107,20 @@ def read_file(filename, conditionals):
                         continue
                     metadata_row = write_metadata_row(
                         scan_number, lines[i:i+143])  # improve precision here
-                    if conditionals['hcd_filter'] == 'true':
-                        hcd_filter_options[metadata_row['HCD energy']] += 1
-                    if conditionals['ms_level_filter'] == 'true':
-                        ms_level_filter_options[metadata_row['MS Level']] += 1
-                    if conditionals['polarity_filter'] == 'true':
-                        polarity_filter_options[metadata_row['Polarity']] += 1
-                    if conditionals['sid_filter'] == 'true':
-                        sid_filter_options[metadata_row['SID']] += 1
+                    j = 0
+                    while j < 4:
+                        if conditionals[filter_names[j]] == 'true':
+                            filter_options_list[j][metadata_row[filter_columns[j]]] += 1
+                        j += 1
+
+                    # if conditionals['hcd_filter'] == 'true':
+                    #     hcd_filter_options[metadata_row['HCD energy']] += 1
+                    # if conditionals['ms_level_filter'] == 'true':
+                    #     ms_level_filter_options[metadata_row['MS Level']] += 1
+                    # if conditionals['polarity_filter'] == 'true':
+                    #     polarity_filter_options[metadata_row['Polarity']] += 1
+                    # if conditionals['sid_filter'] == 'true':
+                    #     sid_filter_options[metadata_row['SID']] += 1
                     if int(float(metadata_row['tic'])) < conditionals['tic_min']:
                         mid_scan = False
                         i += 1
@@ -148,14 +168,13 @@ def read_file(filename, conditionals):
                     unidec_rows = []
             i += 1
     print(filename)
-    print('HCD Values:')
-    print(dict(hcd_filter_options))
-    print('MS Level Values:')
-    print(dict(ms_level_filter_options))
-    print('Polarity Values:')
-    print(dict(polarity_filter_options))
-    print('SID Values:')
-    print(dict(sid_filter_options))
+    k = 0
+    while k < 4:
+        if conditionals[filter_names[k]] == 'true':
+            print(filter_columns[k] + ' Values:')
+            print(dict(filter_options_list[k]))
+        k += 1
+
     os.chdir(input_folder)
 
 
