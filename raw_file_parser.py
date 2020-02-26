@@ -33,16 +33,16 @@ def parse_input(conditionals):
     filter_names = ['hcd', 'ms_level',
                     'polarity', 'sid']
 
-    # k = 0
-    # while k < 4:
-    #     filter_value = filter_names[k] + '_filter_value'
-    #     if conditionals[filter_value] != 'none':
-    #         filter_string += filter_names[k] + '_' + conditionals[filter_value] + '_'
-    #      k += 1
+    k = 0
+    while k < 4:
+        filter_value = filter_names[k] + '_filter_value'
+        if conditionals[filter_value] != 'none':
+            filter_string += filter_names[k] + '_' + conditionals[filter_value] + '_'
+        k += 1
     
 
     global output_folder
-    output_folder = input_folder + 'parser_output' + filter_string + \
+    output_folder = input_folder + 'parser_output_' + filter_string + \
         str(random.randint(10000, 100000))
 
     try:
@@ -131,7 +131,7 @@ def read_file(filename, conditionals):
                             i += 1
                             continue
                     if conditionals['ms_level_filter_value'] != 'none':
-                        if metadata_row['Ms Level'] != conditionals['ms_level_filter_value']:
+                        if metadata_row['MS Level'] != conditionals['ms_level_filter_value']:
                             mid_scan = False
                             i += 1
                             continue
