@@ -4,8 +4,6 @@ import argparse
 import random
 from collections import defaultdict
 
-# cur_time = os.stat('raw_file_parser.py').st_atime
-
 metadata_dict = {
     'MS Level': ['cvParam: ms level,', ',', ','],
     'Time': ['cvParam: scan start time', ',', ','],
@@ -32,11 +30,14 @@ def parse_input(conditionals):
     filter_string = ''
     filter_names = ['hcd', 'ms_level',
                     'polarity', 'sid']
+    filters_applied = False
 
+    # adds filter values to output folder name if they exist
     k = 0
     while k < 4:
         filter_value = filter_names[k] + '_filter_value'
         if conditionals[filter_value] != 'none':
+            filters_applied = True
             filter_string += filter_names[k] + '_' + conditionals[filter_value] + '_'
         k += 1
     
@@ -53,11 +54,11 @@ def parse_input(conditionals):
         print("Successfully created the directory %s " % output_folder)
 
     for filename in file_list:
-        if is_valid_file(filename, conditionals['filename']):
+        if is_valid_file(filename, conditionals['filename'], filters_applied):
             read_file(filename, conditionals)
 
 
-def is_valid_file(filename, input_filename):
+def is_valid_file(filename, input_filename, filters_applied):
     if input_filename != '0':
         if filename.find(input_filename) > -1:
             return True
@@ -97,6 +98,7 @@ def read_file(filename, conditionals):
                     mid_scan = True
                     scan_number = lines[i][new_scan_index +
                                            len(unidec_dict['scan']):].strip()
+                    print(scan_number)
                     if int(scan_number) < conditionals['scan_range'][0]:
                         mid_scan = False
                         i += 1
@@ -112,19 +114,21 @@ def read_file(filename, conditionals):
                         if conditionals[filter_names[j]] == 'true':
                             filter_options_list[j][metadata_row[filter_columns[j]]] += 1
                         j += 1
-
-                    # if conditionals['hcd_filter'] == 'true':
-                    #     hcd_filter_options[metadata_row['HCD energy']] += 1
-                    # if conditionals['ms_level_filter'] == 'true':
-                    #     ms_level_filter_options[metadata_row['MS Level']] += 1
-                    # if conditionals['polarity_filter'] == 'true':
-                    #     polarity_filter_options[metadata_row['Polarity']] += 1
-                    # if conditionals['sid_filter'] == 'true':
-                    #     sid_filter_options[metadata_row['SID']] += 1
                     if int(float(metadata_row['tic'])) < conditionals['tic_min']:
                         mid_scan = False
                         i += 1
                         continue
+                    
+                    # m = 0
+                    # while m < 4:
+                    #     filter_value = filter_names[m] + '_value'
+                    #     if conditionals[filter_value] != 'none':
+                    #         if metadata_row[filter_columns[m]] != conditionals[filter_value]:
+                    #             mid_scan = False
+                    #             i += 1
+                    #             continue
+                    #     m += 1
+
                     if conditionals['hcd_filter_value'] != 'none':
                         if metadata_row['HCD energy'] != conditionals['hcd_filter_value']:
                             mid_scan = False
